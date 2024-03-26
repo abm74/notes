@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
                       initialValue: existingNote?.title,
                       decoration: const InputDecoration(hintText: 'Title'),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Enter title';
                         }
                         return null;
@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Enter note';
                         }
                         return null;
@@ -115,6 +115,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<NotesBloc, NotesState>(
+      listenWhen: (previous, current) => current.status.isError,
       listener: (context, state) {
         if (state.status.isError) {
           ScaffoldMessenger.of(context)
@@ -144,6 +145,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         body: BlocBuilder<NotesBloc, NotesState>(
+          buildWhen: (previous, current) {
+            return !current.status.isError;
+          },
           builder: (context, state) {
             if (state.status.isSuccess) {
               if (state.notes.isEmpty) {
@@ -153,20 +157,19 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(fontSize: 20),
                   ),
                 );
-              }
-              return ListView.builder(
-                itemCount: state.notes.length,
-                itemBuilder: ((context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8, top: 8),
-                    child: Dismissible(
-                      key: ValueKey(state.notes[index].id),
+              } else {
+                return ListView.builder(
+                  itemCount: state.notes.length,
+                  itemBuilder: ((context, index) {
+                    return Padding(
+                      padding:
+                          const EdgeInsets.only(left: 8.0, right: 8, top: 8),
                       child: ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                           // side: const BorderSide(width: 2),
                         ),
-                        tileColor: Color.fromARGB(210, 255, 187, 0),
+                        tileColor: Color.fromARGB(197, 237, 196, 252),
                         leading: const Icon(
                           Icons.note_alt,
                           // color: Colors.white,
@@ -181,9 +184,18 @@ class _HomePageState extends State<HomePage> {
                                   NoteDetails(note: state.notes[index]))));
                         },
                         trailing: MenuAnchor(
-                          alignmentOffset: const Offset(-80, 15),
+                          alignmentOffset: const Offset(-90, 10),
                           style: const MenuStyle(alignment: Alignment.topLeft),
                           menuChildren: [
+                            MenuItemButton(
+                              child: const SizedBox(
+                                  width: 100, child: Text('Open')),
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: ((context) => NoteDetails(
+                                        note: state.notes[index]))));
+                              },
+                            ),
                             MenuItemButton(
                               child: const SizedBox(
                                   width: 70, child: Text('Edit')),
@@ -211,10 +223,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              );
+                    );
+                  }),
+                );
+              }
             } else if (state.status.isloading) {
               return const Center(
                 child: CircularProgressIndicator(),

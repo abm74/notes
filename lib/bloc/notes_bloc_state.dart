@@ -1,10 +1,11 @@
 part of 'notes_bloc_bloc.dart';
 
-enum NotesStatus { initial, loading, error, success }
+enum NotesStatus { initial, loading,loadingError, error, success }
 
 extension NotesStatusX on NotesStatus {
   bool get isInitial => this == NotesStatus.initial;
   bool get isloading => this == NotesStatus.loading;
+  bool get isloadingError => this == NotesStatus.loadingError;
   bool get isError => this == NotesStatus.error;
   bool get isSuccess => this == NotesStatus.success;
 }

@@ -24,7 +24,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       emit(state.copyWith(status: NotesStatus.success, notes: notes));
     } catch (e) {
       debugPrint('Error: $e');
-      emit(state.copyWith(status: NotesStatus.error));
+      emit(state.copyWith(status: NotesStatus.loadingError));
     }
     // emit.forEach(notesRepository.loadNotes(),
     //     onData: (notes) =>

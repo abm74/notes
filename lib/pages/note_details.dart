@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:notes/models/note.dart';
 
 class NoteDetails extends StatelessWidget {
@@ -23,14 +24,14 @@ class NoteDetails extends StatelessWidget {
       body: Center(
         heightFactor: 1,
         child: Padding(
-          padding: const EdgeInsets.all(30),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: EdgeInsets.all(10),
               decoration: ShapeDecoration(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-                color: Color.fromARGB(255, 255, 189, 9),
+                color: Color.fromARGB(255, 198, 26, 255),
               ),
               child: Row(
                 children: [
@@ -38,7 +39,7 @@ class NoteDetails extends StatelessWidget {
                     'Title ',
                     style: TextStyle(
                         fontSize: 24,
-                        color: Color.fromARGB(255, 94, 6, 77),
+                        color: Color.fromARGB(255, 255, 239, 252),
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(
@@ -51,11 +52,12 @@ class NoteDetails extends StatelessWidget {
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        color: Color.fromARGB(203, 255, 255, 255),
+                        color: Color.fromARGB(240, 255, 255, 255),
                       ),
                       child: Text(
                         note.title,
-                        style: TextStyle(fontSize: 24),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -71,7 +73,7 @@ class NoteDetails extends StatelessWidget {
               decoration: ShapeDecoration(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-                color: Color.fromARGB(255, 255, 189, 9),
+                color: Color.fromARGB(255, 198, 26, 255),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -83,8 +85,8 @@ class NoteDetails extends StatelessWidget {
                         child: Text(
                           'Content',
                           style: TextStyle(
-                              fontSize: 20,
-                              color: Color.fromARGB(255, 94, 6, 77),
+                              fontSize: 22,
+                              color: Color.fromARGB(255, 248, 235, 246),
                               fontWeight: FontWeight.bold),
                           // textAlign: TextAlign.start,
                         ),
@@ -95,15 +97,18 @@ class NoteDetails extends StatelessWidget {
                     height: 5,
                   ),
                   Container(
-                      constraints: const BoxConstraints(minHeight: 150),
+                      constraints:
+                          const BoxConstraints(minHeight: 150, maxHeight: 400),
                       alignment: Alignment.topLeft,
                       padding: EdgeInsets.only(top: 20, left: 10, right: 10),
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        color: Color.fromARGB(203, 255, 255, 255),
+                        color: Color.fromARGB(232, 255, 255, 255),
                       ),
-                      child: Text(note.body, style: TextStyle(fontSize: 18))),
+                      child: SingleChildScrollView(
+                        child: Text(note.body, style: TextStyle(fontSize: 18)),
+                      )),
                 ],
               ),
             )
