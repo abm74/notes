@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/bloc/notes_bloc_bloc.dart';
@@ -19,7 +20,8 @@ class _HomePageState extends State<HomePage> {
   void _addNote(NotesBloc bloc, BuildContext context) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      bloc.add(AddNote(Note(title: title!, body: body!, date: DateTime.now())));
+      bloc.add(AddNote(
+          Note(title: title!, body: body!, timestamp: Timestamp.now())));
       Navigator.of(context).pop();
     }
   }
@@ -27,8 +29,8 @@ class _HomePageState extends State<HomePage> {
   void _updateNote(NotesBloc bloc, BuildContext context, Note note) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      bloc.add(UpdateNote(
-          Note(title: title!, body: body!, date: note.date, id: note.id)));
+      bloc.add(UpdateNote(Note(
+          title: title!, body: body!, timestamp: note.timestamp, id: note.id)));
       Navigator.of(context).pop();
     }
   }
@@ -115,7 +117,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<NotesBloc, NotesState>(
-      listenWhen: (previous, current) => current.status.isError,
+      listenWhen: (previous, current) =>
+          current.status.isError ||
+          (previous.status.isDeleting && current.status.isSuccess),
       listener: (context, state) {
         if (state.status.isError) {
           ScaffoldMessenger.of(context)
@@ -125,7 +129,20 @@ class _HomePageState extends State<HomePage> {
               action: SnackBarAction(
                   label: 'Ok',
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    // Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                  }),
+            ));
+        } else {
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(SnackBar(
+              content: const Text('Note deleted'),
+              action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () {
+                    context.read<NotesBloc>().add(UndoDelete());
+                    ScaffoldMessenger.of(context).clearSnackBars();
                   }),
             ));
         }
@@ -227,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                   }),
                 );
               }
-            } else if (state.status.isloading) {
+            } else if (state.status.isloading || state.status.isDeleting) {
               return const Center(
                 child: CircularProgressIndicator(),
               );

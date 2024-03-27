@@ -1,38 +1,40 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:notes/models/note.dart';
 
-enum NoteData { title, body, date }
+enum NoteData { title, body, timestamp }
 
 class NotesRepository {
-  NotesRepository() {
-    notesRef = FirebaseFirestore.instance.collection('notes');
-  }
-// notesRef = FirebaseFirestore.instance.collection('notes');
-  late final CollectionReference<Map<String, dynamic>> notesRef;
+  NotesRepository();
+  final notesRef = FirebaseFirestore.instance.collection('notes');
 
-  // Stream<List<Note>> loadNotes() {
-  Future<List<Note>> loadNotes() async {
-    // return notesRef.snapshots().map((snapshot) => snapshot.docs.map((document) {
-    //       final id = document.reference.id;
-    //       final data = document.data();
-    //       return Note(
-    //           title: data['title'],
-    //           body: data['body'],
-    //           date: data['date'],
-    //           id: id);
-    //     }).toList());
-    final snapshot = await notesRef.get();
-    return snapshot.docs.map((document) {
-      final id = document.reference.id;
-      final data = document.data();
-      return Note(
-          title: data['title'],
-          body: data['body'],
-          date: data['date'].toDate(),
-          id: id);
-    }).toList();
+  Stream<List<Note>> loadNotes() {
+    // Future<List<Note>> loadNotes() async {
+    return notesRef
+        .orderBy(NoteData.timestamp.name, descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((document) {
+              final id = document.id;
+              final data = document.data();
+              return Note(
+                  title: data[NoteData.title.name],
+                  body: data[NoteData.body.name],
+                  timestamp: data[NoteData.timestamp.name],
+                  id: id);
+            }).toList());
+
+    //final snapshot = await notesRef.get();
+    // return snapshot.docs.map((document) {
+    //   final id = document.reference.id;
+    //   final data = document.data();
+    //   return Note(
+    //       title: data['title'],
+    //       body: data['body'],
+    //       date: data['date'],
+    //       id: id);
+    // }).toList();
   }
 
   Future<String?> addNote(Note note) async {
@@ -40,7 +42,7 @@ class NotesRepository {
       final docRef = await notesRef.add({
         NoteData.title.name: note.title,
         NoteData.body.name: note.body,
-        NoteData.date.name: note.date,
+        NoteData.timestamp.name: note.timestamp,
       });
       return docRef.id;
     } catch (e) {
@@ -65,7 +67,7 @@ class NotesRepository {
       notesRef.doc(note.id).update({
         NoteData.title.name: note.title,
         NoteData.body.name: note.body,
-        NoteData.date.name: note.date,
+        NoteData.timestamp.name: note.timestamp,
       });
       return true;
     } catch (e) {

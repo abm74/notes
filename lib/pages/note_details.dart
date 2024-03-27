@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:notes/models/note.dart';
 
 class NoteDetails extends StatelessWidget {
@@ -100,14 +99,28 @@ class NoteDetails extends StatelessWidget {
                       constraints:
                           const BoxConstraints(minHeight: 150, maxHeight: 400),
                       alignment: Alignment.topLeft,
-                      padding: EdgeInsets.only(top: 20, left: 10, right: 10),
+                      padding:
+                          const EdgeInsets.only(top: 20, left: 10, right: 10),
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        color: Color.fromARGB(232, 255, 255, 255),
+                        color: const Color.fromARGB(232, 255, 255, 255),
                       ),
-                      child: SingleChildScrollView(
-                        child: Text(note.body, style: TextStyle(fontSize: 18)),
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        thickness: 7,
+                        interactive: true,
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 20),
+                            child: Text(
+                              note.body,
+                              style: const TextStyle(fontSize: 18),
+                              textAlign: TextAlign.justify,
+                            ),
+                          ),
+                        ),
                       )),
                 ],
               ),

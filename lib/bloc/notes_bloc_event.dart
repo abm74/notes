@@ -28,3 +28,5 @@ final class UpdateNote extends NotesEvent {
 }
 
 final class LoadNotes extends NotesEvent {}
+
+final class UndoDelete extends NotesEvent {}
