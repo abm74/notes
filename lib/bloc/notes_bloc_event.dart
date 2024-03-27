@@ -14,8 +14,9 @@ final class AddNote extends NotesEvent {
 }
 
 final class DeleteNote extends NotesEvent {
-  DeleteNote(this.note);
+  DeleteNote(this.note, {this.inMass = false});
   final Note note;
+  final bool inMass;
   @override
   List<Object?> get props => [note];
 }

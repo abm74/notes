@@ -11,7 +11,6 @@ class NotesRepository {
   final notesRef = FirebaseFirestore.instance.collection('notes');
 
   Stream<List<Note>> loadNotes() {
-    // Future<List<Note>> loadNotes() async {
     return notesRef
         .orderBy(NoteData.timestamp.name, descending: true)
         .snapshots()
@@ -24,17 +23,6 @@ class NotesRepository {
                   timestamp: data[NoteData.timestamp.name],
                   id: id);
             }).toList());
-
-    //final snapshot = await notesRef.get();
-    // return snapshot.docs.map((document) {
-    //   final id = document.reference.id;
-    //   final data = document.data();
-    //   return Note(
-    //       title: data['title'],
-    //       body: data['body'],
-    //       date: data['date'],
-    //       id: id);
-    // }).toList();
   }
 
   Future<String?> addNote(Note note) async {
@@ -57,9 +45,6 @@ class NotesRepository {
     } catch (e) {
       return false;
     }
-
-    // .delete();
-    // notesRef.doc().delete();
   }
 
   Future<bool> updateNote(Note note) async {

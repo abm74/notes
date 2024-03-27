@@ -16,6 +16,9 @@ class _HomePageState extends State<HomePage> {
   final _formKey = GlobalKey<FormState>();
   String? title;
   String? body;
+  final List<Note> _selectedNotes = [];
+  bool _isSelecting = false;
+  int _numMassDeleted = 0;
 
   void _addNote(NotesBloc bloc, BuildContext context) {
     if (_formKey.currentState!.validate()) {
@@ -129,7 +132,6 @@ class _HomePageState extends State<HomePage> {
               action: SnackBarAction(
                   label: 'Ok',
                   onPressed: () {
-                    // Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).clearSnackBars();
                   }),
             ));
@@ -137,12 +139,15 @@ class _HomePageState extends State<HomePage> {
           ScaffoldMessenger.of(context)
             ..clearSnackBars()
             ..showSnackBar(SnackBar(
-              content: const Text('Note deleted'),
+              content: _numMassDeleted > 0
+                  ? Text('$_numMassDeleted notes deleted')
+                  : const Text('Note deleted'),
               action: SnackBarAction(
                   label: 'Undo',
                   onPressed: () {
                     context.read<NotesBloc>().add(UndoDelete());
                     ScaffoldMessenger.of(context).clearSnackBars();
+                    _numMassDeleted = 0;
                   }),
             ));
         }
@@ -151,7 +156,6 @@ class _HomePageState extends State<HomePage> {
         appBar: AppBar(
           backgroundColor: Colors.deepPurple[400],
           title: const Center(
-            // widthFactor: 3,
             child: Text(
               'Notes',
               style: TextStyle(
@@ -160,6 +164,76 @@ class _HomePageState extends State<HomePage> {
                   fontSize: 24),
             ),
           ),
+          actions: !_isSelecting
+              ? []
+              : [
+                  TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedNotes.clear();
+                          _isSelecting = false;
+                        });
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold),
+                      )),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                                title: const Text(
+                                  'Warning',
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                content: Text(
+                                    'Delete ${_selectedNotes.length} items?'),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _selectedNotes.clear();
+                                          _isSelecting = false;
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('No')),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  TextButton(
+                                      onPressed: () {
+                                        for (final note in _selectedNotes) {
+                                          context.read<NotesBloc>().add(
+                                              DeleteNote(note, inMass: true));
+                                        }
+                                        setState(() {
+                                          _numMassDeleted =
+                                              _selectedNotes.length;
+                                          _selectedNotes.clear();
+                                          _isSelecting = false;
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Yes'))
+                                ],
+                              ));
+                    },
+                  )
+                ],
         ),
         body: BlocBuilder<NotesBloc, NotesState>(
           buildWhen: (previous, current) {
@@ -184,22 +258,53 @@ class _HomePageState extends State<HomePage> {
                       child: ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
-                          // side: const BorderSide(width: 2),
                         ),
                         tileColor: Color.fromARGB(197, 237, 196, 252),
                         leading: const Icon(
                           Icons.note_alt,
-                          // color: Colors.white,
                         ),
                         title: Text(
                           state.notes[index].title,
                           style: const TextStyle(fontSize: 20),
                         ),
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: ((context) =>
-                                  NoteDetails(note: state.notes[index]))));
+                          if (_isSelecting) {
+                            setState(() {
+                              if (_selectedNotes.contains(state.notes[index])) {
+                                _selectedNotes.remove(state.notes[index]);
+                                if (_selectedNotes.isEmpty) {
+                                  _isSelecting = false;
+                                }
+                              } else {
+                                if (!_isSelecting) {
+                                  _isSelecting = true;
+                                }
+                                _selectedNotes.add(state.notes[index]);
+                              }
+                            });
+                          } else {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: ((context) =>
+                                    NoteDetails(note: state.notes[index]))));
+                          }
                         },
+                        onLongPress: () {
+                          setState(() {
+                            if (_selectedNotes.contains(state.notes[index])) {
+                              _selectedNotes.remove(state.notes[index]);
+                              if (_selectedNotes.isEmpty) {
+                                _isSelecting = false;
+                              }
+                            } else {
+                              if (!_isSelecting) {
+                                _isSelecting = true;
+                              }
+                              _selectedNotes.add(state.notes[index]);
+                            }
+                          });
+                        },
+                        selected: _selectedNotes.contains(state.notes[index]),
+                        selectedTileColor: Color.fromARGB(255, 100, 255, 43),
                         trailing: MenuAnchor(
                           alignmentOffset: const Offset(-90, 10),
                           style: const MenuStyle(alignment: Alignment.topLeft),

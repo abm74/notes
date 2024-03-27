@@ -1,6 +1,6 @@
 part of 'notes_bloc_bloc.dart';
 
-enum NotesStatus { initial, loading,loadingError,deleting, error, success }
+enum NotesStatus { initial, loading, loadingError, deleting, error, success }
 
 extension NotesStatusX on NotesStatus {
   bool get isInitial => this == NotesStatus.initial;
@@ -11,8 +11,6 @@ extension NotesStatusX on NotesStatus {
   bool get isDeleting => this == NotesStatus.deleting;
 }
 
-// @immutable
-// sealed
 class NotesState {
   const NotesState({this.status = NotesStatus.initial, List<Note>? notes})
       : notes = notes ?? const [];
@@ -22,5 +20,3 @@ class NotesState {
   NotesState copyWith({NotesStatus? status, List<Note>? notes}) =>
       NotesState(status: status ?? this.status, notes: notes ?? this.notes);
 }
-
-// final class NotesBlocInitial extends NotesBlocState {}

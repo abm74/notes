@@ -12,7 +12,6 @@ class NoteDetails extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.deepPurple[400],
         title: const Center(
-          // widthFactor: 3,
           child: Text(
             'Notes',
             style: TextStyle(
@@ -87,7 +86,6 @@ class NoteDetails extends StatelessWidget {
                               fontSize: 22,
                               color: Color.fromARGB(255, 248, 235, 246),
                               fontWeight: FontWeight.bold),
-                          // textAlign: TextAlign.start,
                         ),
                       ),
                     ],
