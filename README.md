@@ -1,2 +1,2 @@
 # notes
-Notes app using firebase and flutter
+Notes app using flutter and firebase as a backend
