@@ -128,7 +128,9 @@ class _HomePageState extends State<HomePage> {
           ScaffoldMessenger.of(context)
             ..clearSnackBars()
             ..showSnackBar(SnackBar(
-              content: const Text('Some thing went wrong'),
+              content: Text(
+                state.customError?.message ?? 'Some thing went wrong',
+              ),
               action: SnackBarAction(
                   label: 'Ok',
                   onPressed: () {
@@ -237,7 +239,7 @@ class _HomePageState extends State<HomePage> {
         ),
         body: BlocBuilder<NotesBloc, NotesState>(
           buildWhen: (previous, current) {
-            return !current.status.isError;
+            return !current.status.isError && !current.status.isDeleting;
           },
           builder: (context, state) {
             if (state.status.isSuccess) {
@@ -349,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                   }),
                 );
               }
-            } else if (state.status.isloading || state.status.isDeleting) {
+            } else if (state.status.isLoading || state.status.isDeleting) {
               return const Center(
                 child: CircularProgressIndicator(),
               );

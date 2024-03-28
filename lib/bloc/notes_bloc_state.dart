@@ -4,7 +4,7 @@ enum NotesStatus { initial, loading, loadingError, deleting, error, success }
 
 extension NotesStatusX on NotesStatus {
   bool get isInitial => this == NotesStatus.initial;
-  bool get isloading => this == NotesStatus.loading;
+  bool get isLoading => this == NotesStatus.loading;
   bool get isloadingError => this == NotesStatus.loadingError;
   bool get isError => this == NotesStatus.error;
   bool get isSuccess => this == NotesStatus.success;
@@ -12,11 +12,17 @@ extension NotesStatusX on NotesStatus {
 }
 
 class NotesState {
-  const NotesState({this.status = NotesStatus.initial, List<Note>? notes})
+  const NotesState(
+      {this.status = NotesStatus.initial, List<Note>? notes, this.customError})
       : notes = notes ?? const [];
   final List<Note> notes;
   final NotesStatus status;
+  final CustomError? customError;
 
-  NotesState copyWith({NotesStatus? status, List<Note>? notes}) =>
-      NotesState(status: status ?? this.status, notes: notes ?? this.notes);
+  NotesState copyWith(
+          {NotesStatus? status, List<Note>? notes, CustomError? customError}) =>
+      NotesState(
+          status: status ?? this.status,
+          notes: notes ?? this.notes,
+          customError: customError);
 }

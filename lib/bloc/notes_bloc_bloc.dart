@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:notes/models/note.dart';
 import 'package:notes/repository/notes_repository.dart';
+import 'package:notes/utils/custom_errors.dart';
 
 part 'notes_bloc_event.dart';
 part 'notes_bloc_state.dart';
@@ -17,7 +18,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   }
 
   final NotesRepository notesRepository;
-  // Note? lastDeleted;
+
   List<Note> lastDeleted = [];
 
   void _loadNotes(LoadNotes event, Emitter<NotesState> emit) async {
@@ -29,6 +30,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
         return state.copyWith(status: NotesStatus.success, notes: data);
       },
       onError: (error, stackTrace) {
+        debugPrint('Stream error: $error');
         return state.copyWith(status: NotesStatus.loadingError);
       },
     );
@@ -47,9 +49,13 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
   void _addNote(AddNote event, Emitter<NotesState> emit) async {
     try {
-      final newId = await notesRepository.addNote(event.note);
-      if (newId == null) {
-        emit(state.copyWith(status: NotesStatus.error));
+      final response = await notesRepository.addNote(event.note);
+      if (!response.success) {
+        emit(state.copyWith(
+            status: NotesStatus.error,
+            customError: response.message == null
+                ? null
+                : CustomError(message: response.message!)));
         return;
       }
     } catch (e) {
@@ -61,8 +67,10 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   void _deleteNote(DeleteNote event, Emitter<NotesState> emit) async {
     emit(state.copyWith(status: NotesStatus.deleting));
     try {
-      final success = await notesRepository.deleteNote(event.note);
-      if (success) {
+      debugPrint('info: started deleting');
+      final response = await notesRepository.deleteNote(event.note);
+      debugPrint('info: deleting...');
+      if (response.success) {
         if (event.inMass) {
           lastDeleted.add(event.note);
         } else {
@@ -71,21 +79,31 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
             ..add(event.note);
         }
       } else {
-        emit(state.copyWith(status: NotesStatus.error));
+        emit(state.copyWith(
+            status: NotesStatus.error,
+            customError: response.message == null
+                ? null
+                : CustomError(message: response.message!)));
         return;
       }
     } catch (e) {
       debugPrint('Error: $e');
-      emit(state.copyWith(status: NotesStatus.error));
+      emit(state.copyWith(
+        status: NotesStatus.error,
+      ));
     }
   }
 
   void _updateNote(UpdateNote event, Emitter<NotesState> emit) async {
     debugPrint('Update id: ${event.note.id}');
     try {
-      final success = await notesRepository.updateNote(event.note);
-      if (!success) {
-        emit(state.copyWith(status: NotesStatus.error));
+      final response = await notesRepository.updateNote(event.note);
+      if (!response.success) {
+        emit(state.copyWith(
+            status: NotesStatus.error,
+            customError: response.message == null
+                ? null
+                : CustomError(message: response.message!)));
         return;
       }
     } catch (e) {

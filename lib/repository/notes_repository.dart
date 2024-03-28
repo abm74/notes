@@ -1,14 +1,41 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:notes/models/note.dart';
 
 enum NoteData { title, body, timestamp }
 
+class Response {
+  Response(this.success, {this.message});
+  final bool success;
+  final String? message;
+}
+
 class NotesRepository {
   NotesRepository();
   final notesRef = FirebaseFirestore.instance.collection('notes');
+
+  Future<bool> hasActiveConnection() async {
+    final result = await Connectivity().checkConnectivity();
+    if (result[0] == ConnectivityResult.none) {
+      return false;
+    } else {
+      try {
+        final addresses = await InternetAddress.lookup('example.com');
+        if (addresses.isNotEmpty && addresses[0].rawAddress.isNotEmpty) {
+          return true;
+        }
+      } catch (e) {
+        debugPrint('Error: $e');
+        return false;
+      }
+    }
+
+    return false;
+  }
 
   Stream<List<Note>> loadNotes() {
     return notesRef
@@ -25,38 +52,64 @@ class NotesRepository {
             }).toList());
   }
 
-  Future<String?> addNote(Note note) async {
+  Future<Response> addNote(Note note) async {
+    if (!await hasActiveConnection()) {
+      return Response(false, message: 'No internet connection');
+    }
     try {
-      final docRef = await notesRef.add({
+      await notesRef.add({
         NoteData.title.name: note.title,
         NoteData.body.name: note.body,
         NoteData.timestamp.name: note.timestamp,
       });
-      return docRef.id;
+      return Response(true);
     } catch (e) {
-      return null;
+      return Response(false);
     }
   }
 
-  Future<bool> deleteNote(Note note) async {
+  Future<Response> deleteNote(Note note) async {
+    if (!await hasActiveConnection()) {
+      return Response(false, message: 'No internet connection');
+    }
     try {
-      final snapshot = await notesRef.doc(note.id).delete();
-      return true;
+      final doc = await notesRef.doc(note.id).get();
+      if (doc.exists) {
+        print('Doc exists');
+        doc.reference.delete();
+      } else {
+        print('Document doesn\'t exist');
+        return Response(false);
+      }
+
+      return Response(true);
     } catch (e) {
-      return false;
+      print('Delete error: $e');
+      return Response(false);
     }
   }
 
-  Future<bool> updateNote(Note note) async {
+  Future<Response> updateNote(Note note) async {
+    if (!await hasActiveConnection()) {
+      return Response(false, message: 'No internet connection');
+    }
     try {
-      notesRef.doc(note.id).update({
-        NoteData.title.name: note.title,
-        NoteData.body.name: note.body,
-        NoteData.timestamp.name: note.timestamp,
-      });
-      return true;
+      final doc = await notesRef.doc(note.id).get();
+      if (doc.exists) {
+        print('doc exists');
+        doc.reference.set({
+          NoteData.title.name: note.title,
+          NoteData.body.name: note.body,
+          NoteData.timestamp.name: note.timestamp,
+        });
+        return Response(true);
+      } else {
+        print('doc doesn\'t exist');
+        return Response(false);
+      }
     } catch (e) {
-      return false;
+      debugPrint('Update error: $e');
+      return Response(false);
     }
   }
 }
