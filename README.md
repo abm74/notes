@@ -1,3 +1,2 @@
 # notes
-
-A new Flutter project.
+Notes app using firebase and flutter
